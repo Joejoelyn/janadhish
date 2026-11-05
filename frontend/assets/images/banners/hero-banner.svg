@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="520" viewBox="0 0 1400 520">
+  <rect width="1400" height="520" fill="#f3eee8"/>
+  <circle cx="1180" cy="90" r="160" fill="#e8d4b2" opacity="0.5"/>
+  <circle cx="1200" cy="410" r="140" fill="#e9c7a4" opacity="0.35"/>
+  <g transform="translate(120,50)">
+    <rect x="0" y="0" width="500" height="420" rx="24" fill="#f1e6db"/>
+    <path d="M120 330 C155 150, 325 112, 400 170 L400 330 Z" fill="#b46f3d" opacity="0.18"/>
+    <path d="M172 338 C188 212, 258 168, 325 184 C357 241, 362 288, 345 338 Z" fill="#b36d44" opacity="0.25"/>
+    <path d="M116 305 C199 285, 242 275, 284 316 C249 332, 213 349, 145 356 Z" fill="#0f5c50"/>
+    <path d="M165 156 C210 88, 286 85, 345 170 C301 204, 248 219, 188 208 C172 190, 167 180, 165 156Z" fill="#0f5c50" opacity="0.62"/>
+    <path d="M145 178 C178 130, 205 118, 241 120 C214 174, 186 214, 138 220 Z" fill="#d6a156" opacity="0.8"/>
+    <path d="M207 124 C260 112, 318 118, 356 162 C301 149, 272 153, 252 178 Z" fill="#d6a156" opacity="0.8"/>
+    <path d="M231 95 C260 101, 286 115, 303 138 C280 144, 257 143, 237 129 Z" fill="#a9d5ca" opacity="0.95"/>
+    <circle cx="236" cy="152" r="6" fill="#d59a52"/>
+  </g>
+  <g transform="translate(700,82)">
+    <text x="0" y="180" font-size="92" font-family="Georgia, serif" fill="#a95d38" font-weight="700">JANADHISH</text>
+    <text x="18" y="250" font-size="28" font-family="Georgia, serif" fill="#7e4d35" letter-spacing="4">MODERN • COMFORTABLE • CLOTHING</text>
+    <rect x="0" y="290" width="260" height="52" rx="26" fill="#a95d38"/>
+    <text x="64" y="325" font-size="24" font-family="Georgia, serif" fill="#fff" letter-spacing="2">SHOP NOW</text>
+  </g>
+</svg>

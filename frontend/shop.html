@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shop All | JANADHISH</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/images/logo/brand-mark.svg" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/responsive.css" />
+  </head>
+  <body>
+    <div class="announcement-bar">
+      <div class="container announcement-inner">
+        <span>New season edit is now live</span>
+        <span>Complimentary shipping on orders over ₹3,000</span>
+      </div>
+    </div>
+
+    <header class="site-header">
+      <div class="container nav-shell">
+        <a href="/" class="brand-mark" aria-label="JANADHISH home">
+          <img class="brand-logo" src="/Images/logo/logo.png" alt="JANADHISH logo" />
+        </a>
+        <nav class="main-nav" aria-label="Main navigation">
+          <a href="/">Home</a>
+          <a href="/shop" class="active">Shop All</a>
+          <a href="/shop?sort=new">New Arrivals</a>
+          <a href="/shop?sort=bestseller">Bestsellers</a>
+          <a href="/custom-made">Custom-Made</a>
+          <a href="/about">About</a>
+          <a href="/contact">Contact</a>
+        </nav>
+        <div class="header-actions">
+          <button class="icon-button" id="searchToggle" aria-label="Search">⌕</button>
+          <a href="/account" class="icon-button" aria-label="My account">◌</a>
+          <a href="/shop" class="icon-button" aria-label="Wishlist">♡</a>
+          <a href="/cart" class="icon-button cart-button" aria-label="Shopping cart">
+            <span>👜</span>
+            <span class="cart-count" id="cartCount">0</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="inner-page">
+      <section class="page-banner simple-banner">
+        <div class="container">
+          <p class="eyebrow">The JANADHISH collection</p>
+          <h1>Pieces with a point of view.</h1>
+          <p>Indian silhouettes, reimagined for your everyday and the moments worth keeping.</p>
+        </div>
+      </section>
+
+      <section class="container catalog-layout">
+        <div class="catalog-panel">
+          <div class="toolbar">
+            <div class="toolbar-meta" id="catalogMeta">Showing 0 items</div>
+            <select id="sortSelect">
+              <option value="newest">Newest Arrivals</option>
+              <option value="new">New Arrivals Only</option>
+              <option value="bestseller">Bestsellers</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="featured">Featured</option>
+            </select>
+          </div>
+          <div class="product-grid" id="catalogGrid"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div>
+          <a href="/" class="brand-mark footer-brand">
+            <img class="brand-logo" src="/Images/logo/logo.png" alt="JANADHISH logo" />
+          </a>
+          <p>Premium wardrobe essentials designed to move beautifully with you.</p>
+        </div>
+        <div>
+          <h4>Shop</h4>
+          <ul>
+            <li><a href="/shop">Shop All</a></li>
+            <li><a href="/shop?sort=new">New Arrivals</a></li>
+            <li><a href="/shop?sort=bestseller">Bestsellers</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <ul>
+            <li><a href="/about">About Us</a></li>
+            <li><a href="/contact">Contact Us</a></li>
+            <li><a href="/faq">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Policies</h4>
+          <ul>
+            <li><a href="/privacy-policy">Privacy Policy</a></li>
+            <li><a href="/terms">Terms & Conditions</a></li>
+            <li><a href="/shipping-policy">Shipping & Returns</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="container footer-bottom">
+        <span>© 2026 JANADHISH</span>
+        <div class="social-links">
+          <a href="#">Instagram</a>
+          <a href="#">Pinterest</a>
+          <a href="#">Facebook</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/products.js"></script>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | JANADHISH</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/images/logo/brand-mark.svg" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/responsive.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav-shell">
+        <a href="/" class="brand-mark" aria-label="JANADHISH home">
+          <img class="brand-logo" src="/Images/logo/logo.png" alt="JANADHISH logo" />
+        </a>
+      </div>
+    </header>
+
+    <main class="auth-page">
+      <div class="auth-card card-box">
+        <h1>Welcome back</h1>
+        <form id="loginForm">
+          <div class="form-row">
+            <label>Email<input type="email" id="loginEmail" required /></label>
+          </div>
+          <div class="form-row">
+            <label>Password<input type="password" id="loginPassword" required /></label>
+          </div>
+          <button type="submit" class="button button-primary full-width">Login</button>
+        </form>
+        <p class="auth-link">New here? <a href="/register">Create an account</a></p>
+      </div>
+    </main>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/auth.js"></script>
+  </body>
+</html>

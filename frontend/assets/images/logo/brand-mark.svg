@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220" role="img" aria-label="JANADHISH logo">
+  <defs>
+    <style>
+      .logo-bg { fill: #f4efe9; }
+    </style>
+  </defs>
+  <rect class="logo-bg" width="220" height="220" rx="18"/>
+  <image href="/Images/logo/logo.png" width="220" height="220" preserveAspectRatio="xMidYMid meet"/>
+</svg>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Account | JANADHISH</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/images/logo/brand-mark.svg" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/responsive.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav-shell">
+        <a href="/" class="brand-mark" aria-label="JANADHISH home">
+          <img class="brand-logo" src="/Images/logo/logo.png" alt="JANADHISH logo" />
+        </a>
+      </div>
+    </header>
+
+    <main class="inner-page account-page">
+      <div class="container account-layout">
+        <aside class="account-menu card-box">
+          <h2>Account</h2>
+          <button class="menu-link active" data-section="profile">Profile</button>
+          <button class="menu-link" data-section="orders">Order History</button>
+          <button class="menu-link" data-section="wishlist">Wishlist</button>
+          <button id="logoutButton" class="button button-secondary">Logout</button>
+        </aside>
+        <div class="account-content card-box">
+          <section class="account-section is-visible" id="profileSection">
+            <h3>My Profile</h3>
+            <div id="accountProfile"></div>
+          </section>
+          <section class="account-section" id="ordersSection">
+            <h3>Order History</h3>
+            <div id="ordersList"></div>
+          </section>
+          <section class="account-section" id="wishlistSection">
+            <h3>Wishlist</h3>
+            <p>Wishlist items will appear here when available.</p>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/auth.js"></script>
+  </body>
+</html>

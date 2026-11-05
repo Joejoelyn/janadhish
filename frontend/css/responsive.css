@@ -1,0 +1,28 @@
+@media (max-width: 640px) {
+  .brand-mark .brand-logo {
+    width: clamp(170px, 44vw, 220px);
+  }
+
+  .search-bar,
+  .newsletter-form {
+    flex-direction: column;
+  }
+
+  .header-actions {
+    gap: 8px;
+  }
+
+  .hero-copy h1,
+  .page-banner h1 {
+    font-size: 2.5rem;
+  }
+
+  .cart-item {
+    grid-template-columns: 1fr;
+  }
+
+  .cart-item img {
+    width: 100%;
+    height: 220px;
+  }
+}

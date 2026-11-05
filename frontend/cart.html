@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shopping Cart | JANADHISH</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/images/logo/brand-mark.svg" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/responsive.css" />
+  </head>
+  <body>
+    <div class="announcement-bar">
+      <div class="container announcement-inner">
+        <span>Cart refreshes live</span>
+        <span>Includes custom-made pieces and everyday essentials</span>
+      </div>
+    </div>
+
+    <header class="site-header">
+      <div class="container nav-shell">
+        <a href="/" class="brand-mark" aria-label="JANADHISH home">
+          <img class="brand-logo" src="/Images/logo/logo.png" alt="JANADHISH logo" />
+        </a>
+        <nav class="main-nav" aria-label="Main navigation">
+          <a href="/">Home</a>
+          <a href="/shop">Shop All</a>
+          <a href="/custom-made">Custom-Made</a>
+        </nav>
+        <div class="header-actions">
+          <a href="/account" class="icon-button" aria-label="My account">◌</a>
+          <a href="/cart" class="icon-button cart-button" aria-label="Shopping cart">
+            <span>👜</span>
+            <span class="cart-count" id="cartCount">0</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="inner-page">
+      <section class="page-banner simple-banner">
+        <div class="container">
+          <p class="eyebrow">Cart</p>
+          <h1>Your selected pieces</h1>
+        </div>
+      </section>
+
+      <section class="container cart-layout">
+        <div class="cart-items" id="cartItems"></div>
+
+        <aside class="summary-card">
+          <h3>Order Summary</h3>
+          <div class="summary-row"><span>Subtotal</span><strong id="subtotalValue">₹0</strong></div>
+          <div class="summary-row"><span>Shipping</span><strong id="shippingValue">₹0</strong></div>
+          <div class="summary-row"><span>Discount</span><strong id="discountValue">₹0</strong></div>
+          <div class="summary-row total"><span>Total</span><strong id="totalValue">₹0</strong></div>
+          <a href="/checkout" class="button button-primary full-width">Proceed to Checkout</a>
+        </aside>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div>
+          <a href="/" class="brand-mark footer-brand">
+            <img class="brand-logo" src="/Images/logo/logo.png" alt="JANADHISH logo" />
+          </a>
+        </div>
+        <div>
+          <h4>Support</h4>
+          <ul>
+            <li><a href="/contact">Contact</a></li>
+            <li><a href="/shipping-policy">Shipping</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="container footer-bottom">
+        <span>© 2026 JANADHISH</span>
+      </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/cart.js"></script>
+  </body>
+</html>

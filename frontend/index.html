@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JANADHISH | Premium Women's Clothing</title>
+    <meta name="description" content="Premium Indian women's clothing with elevated silhouettes, artisan fabrics, and contemporary elegance." />
+    <link rel="icon" type="image/svg+xml" href="/assets/images/logo/brand-mark.svg" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/responsive.css" />
+  </head>
+  <body>
+    <div class="announcement-bar">
+      <div class="container announcement-inner">
+        <span>Free shipping on orders above ₹3,000</span>
+        <span>New arrivals now live</span>
+      </div>
+    </div>
+
+    <header class="site-header">
+      <div class="container nav-shell">
+        <a href="/" class="brand-mark" aria-label="JANADHISH home">
+          <img class="brand-logo" src="/Images/logo/logo.png" alt="JANADHISH logo" />
+        </a>
+
+        <nav class="main-nav" aria-label="Main navigation">
+          <a href="/">Home</a>
+          <a href="/shop">Shop All</a>
+          <a href="/shop?sort=new">New Arrivals</a>
+          <a href="/shop?sort=bestseller">Bestsellers</a>
+          <a href="/custom-made">Custom-Made</a>
+          <a href="/about">About</a>
+          <a href="/contact">Contact</a>
+        </nav>
+
+        <div class="header-actions">
+          <button class="icon-button" id="searchToggle" aria-label="Search">
+            <span>⌕</span>
+          </button>
+          <a href="/account" class="icon-button" aria-label="My account">◌</a>
+          <a href="/shop" class="icon-button" aria-label="Wishlist">♡</a>
+          <a href="/cart" class="icon-button cart-button" aria-label="Shopping cart">
+            <span>👜</span>
+            <span class="cart-count" id="cartCount">0</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="search-wrapper hidden" id="searchWrapper">
+        <div class="container search-bar">
+          <input id="siteSearch" type="search" placeholder="Search by product, fabric, or style" />
+          <button id="searchButton">Search</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero-section">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">JANADHISH · The new edit</p>
+            <h1>Tradition, tailored to you.</h1>
+            <p>
+              Discover expressive Indian wear, considered fabrics, and easy silhouettes made for the way you move.
+            </p>
+            <div class="cta-row">
+              <a href="/shop?sort=new" class="button button-primary">Explore the collection <span aria-hidden="true">↗</span></a>
+              <a href="/custom-made" class="text-link">Made just for you <span aria-hidden="true">↗</span></a>
+            </div>
+            <ul class="trust-tags">
+              <li>Thoughtful fabrics</li>
+              <li>Designed in India</li>
+            </ul>
+          </div>
+          <div class="hero-media hero-editorial">
+            <img src="/Images/products/farshi-salwar-set-1/photo-28.png" alt="JANADHISH Farshi salwar set" fetchpriority="high" />
+            <div class="hero-image-caption">
+              <span>THE FESTIVE EDIT</span>
+              <span>01 / 13</span>
+            </div>
+            <a class="hero-image-link" href="/shop?category=farshi-sets" aria-label="Explore Farshi sets">↗</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-spacing">
+        <div class="container">
+          <div class="section-header">
+            <p class="eyebrow">Shop by Category</p>
+            <h2>Curated for your wardrobe</h2>
+          </div>
+          <div class="category-grid" id="categoryGrid"></div>
+        </div>
+      </section>
+
+      <section class="section-spacing">
+        <div class="container">
+          <div class="section-header split-header">
+            <div>
+              <p class="eyebrow">Bestsellers</p>
+              <h2>Most loved pieces</h2>
+            </div>
+            <a href="/shop?sort=bestseller" class="text-link">See favorites</a>
+          </div>
+          <div class="product-carousel" id="bestsellerCarousel"></div>
+        </div>
+      </section>
+
+      <section class="section-spacing custom-cta">
+        <div class="container custom-grid">
+          <div class="custom-copy">
+            <p class="eyebrow">Custom-made clothing</p>
+            <h2>Designed around your fit and story.</h2>
+            <p>
+              Choose your garment, fabric, and preferred detailing. Share your measurements and let us craft a piece tailored to your personality.
+            </p>
+            <a href="/shop" class="button button-primary">Shop and add your measurements</a>
+          </div>
+          <div class="custom-visual">
+            <img src="/Images/products/semi-chanderi-farshi-salwar-set/photo-44.png" alt="Semi Chanderi Farshi salwar set" loading="lazy" />
+          </div>
+        </div>
+      </section>
+
+      <section class="section-spacing">
+        <div class="container">
+          <div class="section-header">
+            <p class="eyebrow">Why Choose Janadhish</p>
+            <h2>Thoughtful fashion, responsibly made.</h2>
+          </div>
+          <div class="benefit-grid">
+            <article class="benefit-item">
+              <div class="benefit-icon">✦</div>
+              <h3>Premium fabrics</h3>
+              <p>Selected for comfort, richness, and longevity.</p>
+            </article>
+            <article class="benefit-item">
+              <div class="benefit-icon">✧</div>
+              <h3>Tailored fit</h3>
+              <p>Our silhouettes are designed to flatter real movement.</p>
+            </article>
+            <article class="benefit-item">
+              <div class="benefit-icon">✶</div>
+              <h3>Thoughtful details</h3>
+              <p>Beauty lies in the refined finish, not excess.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="closing-note">
+        <div class="container closing-note-inner">
+          <p class="eyebrow">Made to feel like you</p>
+          <h2>Clothes that make room for your story.</h2>
+          <a href="/shop" class="text-link">Find your next favourite <span aria-hidden="true">↗</span></a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div>
+          <a href="/" class="brand-mark footer-brand">
+            <img class="brand-logo" src="/Images/logo/logo.png" alt="JANADHISH logo" />
+          </a>
+          <p>Premium wardrobe essentials designed to move beautifully with you.</p>
+        </div>
+        <div>
+          <h4>Shop</h4>
+          <ul>
+            <li><a href="/shop">Shop All</a></li>
+            <li><a href="/shop?sort=new">New Arrivals</a></li>
+            <li><a href="/shop?sort=bestseller">Bestsellers</a></li>
+            <li><a href="/custom-made">Custom-Made</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Company</h4>
+          <ul>
+            <li><a href="/about">About Us</a></li>
+            <li><a href="/contact">Contact Us</a></li>
+            <li><a href="/faq">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Policies</h4>
+          <ul>
+            <li><a href="/privacy-policy">Privacy Policy</a></li>
+            <li><a href="/terms">Terms & Conditions</a></li>
+            <li><a href="/shipping-policy">Shipping & Returns</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="container footer-bottom">
+        <span>© 2026 JANADHISH</span>
+        <div class="social-links">
+          <a href="#">Instagram</a>
+          <a href="#">Pinterest</a>
+          <a href="#">Facebook</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/products.js"></script>
+  </body>
+</html>
