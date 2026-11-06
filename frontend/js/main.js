@@ -1,4 +1,4 @@
-const API_BASE = '';
+const API_BASE = (window.JANADHISH_API_BASE_URL || '').replace(/\/+$/, '');
 
 function getCart() {
   try {

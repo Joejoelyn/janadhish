@@ -27,10 +27,16 @@ origins = [
     'http://localhost:8000',
     'http://127.0.0.1:5500',
     'http://localhost:5500',
+    'https://janadhish.co.in',
+    'https://www.janadhish.co.in',
 ]
-configured_origin = os.getenv('FRONTEND_ORIGIN')
-if configured_origin:
-    origins.append(configured_origin)
+configured_origins = os.getenv('FRONTEND_ORIGIN', '')
+origins.extend(
+    origin.strip().rstrip('/')
+    for origin in configured_origins.split(',')
+    if origin.strip()
+)
+origins = list(dict.fromkeys(origins))
 
 app.add_middleware(
     CORSMiddleware,
@@ -236,3 +242,6 @@ def get_designs():
 @app.get('/favicon.ico')
 def favicon():
     return FileResponse(FRONTEND_DIR / 'assets' / 'images' / 'logo' / 'brand-mark.svg')
+
+
+app.mount('/', StaticFiles(directory=str(FRONTEND_DIR), html=True), name='frontend')

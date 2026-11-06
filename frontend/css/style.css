@@ -984,6 +984,41 @@ textarea {
   padding: 28px 0 60px;
 }
 
+.about-story-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.8fr);
+  align-items: stretch;
+  gap: clamp(36px, 7vw, 112px);
+  width: 100%;
+  min-height: calc(100vh - 250px);
+  margin: 0;
+  padding: clamp(44px, 6vw, 88px) max(32px, calc((100vw - 1360px) / 2));
+  background: var(--bg);
+}
+
+.about-story-layout .brand-story-copy {
+  align-self: center;
+  width: 100%;
+}
+
+.about-story-layout .brand-story-copy p {
+  max-width: 860px;
+  margin: 0 0 18px;
+  color: var(--muted);
+  line-height: 1.85;
+}
+
+.about-story-layout .brand-story-copy p:last-child {
+  margin-top: 28px;
+  color: var(--brand);
+}
+
+.about-story-layout .brand-story-highlight {
+  align-self: stretch;
+  min-height: 100%;
+  padding: clamp(36px, 5vw, 72px);
+}
+
 .faq-list {
   display: grid;
   gap: 20px;
@@ -1216,6 +1251,17 @@ h4,
   border-bottom: 1px solid var(--line);
 }
 
+.brand-story-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.65fr);
+  align-items: center;
+  gap: 18px clamp(36px, 7vw, 104px);
+}
+
+.brand-story-heading {
+  grid-column: 1 / -1;
+}
+
 .brand-story h2,
 .section-header h2,
 .custom-copy h2 {
@@ -1230,6 +1276,58 @@ h4,
   max-width: 580px;
   color: var(--muted);
   line-height: 1.9;
+}
+
+.brand-story-copy p,
+.info-page.brand-story-layout p {
+  max-width: 760px;
+}
+
+.brand-story-copy p:last-child {
+  margin-top: 24px;
+  color: var(--brand);
+}
+
+.brand-story-highlight {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(28px, 4vw, 54px);
+  background: var(--bg-alt);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+}
+
+.brand-story-highlight .story-years {
+  margin: 14px 0 0;
+  color: var(--brand);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(5rem, 9vw, 8rem);
+  line-height: 0.9;
+}
+
+.story-years span {
+  font-size: 0.5em;
+  vertical-align: top;
+}
+
+.brand-story-highlight .story-highlight-label {
+  margin: 12px 0 28px;
+  color: var(--text);
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.brand-story-highlight blockquote {
+  margin: 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+  line-height: 1.45;
 }
 
 .section-header {

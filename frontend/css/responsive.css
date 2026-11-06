@@ -1,4 +1,29 @@
+@media (max-width: 800px) {
+  .about-story-layout {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    min-height: auto;
+    padding: 48px 24px;
+  }
+
+  .about-story-layout .brand-story-highlight {
+    min-height: 300px;
+  }
+}
+
 @media (max-width: 640px) {
+  .brand-story-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-story-heading {
+    grid-column: auto;
+  }
+
+  .brand-story-highlight {
+    min-height: 300px;
+  }
+
   .brand-mark .brand-logo {
     width: clamp(170px, 44vw, 220px);
   }

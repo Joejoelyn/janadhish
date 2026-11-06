@@ -9,8 +9,6 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
-        value: sqlite:////var/data/janadhish.db
-    disk:
-      name: janadhish-data
-      mountPath: /var/data
-      sizeGB: 1
+        sync: false
+      - key: FRONTEND_ORIGIN
+        value: https://janadhish.co.in,https://www.janadhish.co.in

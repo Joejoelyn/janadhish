@@ -37,7 +37,7 @@ function renderGarments() {
 }
 
 async function renderFabricOptions() {
-  const response = await fetch('/api/fabrics');
+  const response = await fetch(`${API_BASE}/api/fabrics`);
   const fabrics = await response.json();
   const container = document.getElementById('fabricOptions');
   container.innerHTML = fabrics.map((fabric) => `
@@ -58,7 +58,7 @@ async function renderFabricOptions() {
 }
 
 async function renderDesignOptions() {
-  const response = await fetch('/api/designs');
+  const response = await fetch(`${API_BASE}/api/designs`);
   const designs = await response.json();
   const container = document.getElementById('designOptions');
   container.innerHTML = designs.map((design) => `
@@ -234,7 +234,7 @@ document.getElementById('customMadeForm').addEventListener('submit', async (even
   };
 
   try {
-    const response = await fetch('/api/customizations', {
+    const response = await fetch(`${API_BASE}/api/customizations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

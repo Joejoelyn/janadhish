@@ -117,7 +117,7 @@ PRODUCT_SEED = [
         "with_pads_price": None,
         "sizes": "XS,S,M,L,XL",
         "colors": "Natural, Sage, Dusty Rose",
-        "image_url": photo("Photo 12.PNG"),
+        "image_url": photo("Photo 13.PNG"),
         "gallery": ",".join([photo("Photo 12.PNG"), photo("Photo 13.PNG"), photo("Photo 14.PNG")]),
         "is_new_arrival": False,
         "is_best_seller": True,
