@@ -10,6 +10,8 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 load_dotenv(Path(__file__).resolve().parents[1] / '.env')
 
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///./janadhish.db')
+if os.getenv('APP_ENV') == 'production' and not DATABASE_URL.startswith(('postgres://', 'postgresql://')):
+    raise RuntimeError('A PostgreSQL DATABASE_URL is required in production')
 if DATABASE_URL.startswith('postgres://'):
     DATABASE_URL = 'postgresql://' + DATABASE_URL[len('postgres://'):]
 

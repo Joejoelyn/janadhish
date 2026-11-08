@@ -1,25 +1,66 @@
+from functools import lru_cache
+from pathlib import Path
+from urllib.parse import unquote, urlsplit, urlunsplit
+
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..auth import get_db
-from ..data.product_catalog import PRODUCT_SEED
 from ..models import Category, Product
+from ..services.pricing import product_variant_prices
 
 router = APIRouter()
-PRODUCT_PRICES_BY_SKU = {item['sku']: item for item in PRODUCT_SEED}
+PRODUCT_IMAGE_ROOT = (Path(__file__).resolve().parents[2] / 'frontend' / 'Images' / 'products').resolve()
+
+
+@lru_cache(maxsize=512)
+def storefront_image_url(url: str | None) -> str | None:
+    if not url:
+        return url
+    parts = urlsplit(url)
+    if parts.scheme or parts.netloc or not parts.path.startswith('/Images/products/'):
+        return url
+    source = Path(unquote(parts.path.lstrip('/')))
+    if source.suffix.lower() not in {'.png', '.jpg', '.jpeg'}:
+        return url
+    target = (PRODUCT_IMAGE_ROOT.parent.parent / source).with_suffix('.webp').resolve()
+    if not target.is_relative_to(PRODUCT_IMAGE_ROOT) or not target.is_file():
+        return url
+    webp_path = parts.path[:-len(source.suffix)] + '.webp'
+    return urlunsplit(('', '', webp_path, parts.query, parts.fragment))
 
 
 def product_prices(product: Product) -> dict[str, float | None]:
-    prices = PRODUCT_PRICES_BY_SKU.get(product.sku)
-    if not prices:
-        return {'without_pads_price': None, 'with_pads_price': None}
+    without_pads, with_pads = product_variant_prices(product)
     return {
-        'without_pads_price': float(prices['without_pads_price']),
-        'with_pads_price': (
-            float(prices['with_pads_price'])
-            if prices.get('with_pads_price') is not None
-            else None
-        ),
+        'without_pads_price': without_pads,
+        'with_pads_price': with_pads,
+    }
+
+
+def serialize_product(product: Product) -> dict[str, object]:
+    return {
+        'id': product.id,
+        'sku': product.sku,
+        'name': product.name,
+        'short_description': product.short_description,
+        'description': product.description,
+        'fabric_details': product.fabric_details,
+        'care_instructions': product.care_instructions,
+        'price': float(product.price),
+        'sale_price': float(product.sale_price) if product.sale_price is not None else None,
+        **product_prices(product),
+        'sizes': product.sizes.split(',') if product.sizes else [],
+        'colors': product.colors.split(',') if product.colors else [],
+        'category': {'id': product.category.id, 'name': product.category.name, 'slug': product.category.slug} if product.category else None,
+        'stock_quantity': product.stock_quantity,
+        'image_url': storefront_image_url(product.image_url),
+        'gallery': [storefront_image_url(image) for image in product.gallery.split(',')] if product.gallery else [],
+        'is_new_arrival': product.is_new_arrival,
+        'is_best_seller': product.is_best_seller,
+        'is_featured': product.is_featured,
+        'is_active': product.is_active,
     }
 
 
@@ -33,6 +74,7 @@ def list_products(
     db: Session = Depends(get_db),
 ):
     query = db.query(Product).filter(Product.is_active == True)
+    effective_price = func.coalesce(Product.sale_price, Product.price)
 
     if category:
         query = query.join(Category).filter(Category.slug == category)
@@ -44,45 +86,21 @@ def list_products(
             (Product.fabric_details.ilike(term))
         )
     if min_price is not None:
-        query = query.filter((Product.sale_price if Product.sale_price is not None else Product.price) >= min_price)
+        query = query.filter(effective_price >= min_price)
     if max_price is not None:
-        query = query.filter((Product.sale_price if Product.sale_price is not None else Product.price) <= max_price)
+        query = query.filter(effective_price <= max_price)
 
     if sort == 'price_asc':
-        query = query.order_by((Product.sale_price if Product.sale_price is not None else Product.price).asc())
+        query = query.order_by(effective_price.asc())
     elif sort == 'price_desc':
-        query = query.order_by((Product.sale_price if Product.sale_price is not None else Product.price).desc())
+        query = query.order_by(effective_price.desc())
     elif sort == 'featured':
         query = query.order_by(Product.is_featured.desc(), Product.created_at.desc())
     else:
         query = query.order_by(Product.created_at.desc())
 
     products = query.all()
-    response = []
-    for product in products:
-        response.append({
-            'id': product.id,
-            'sku': product.sku,
-            'name': product.name,
-            'short_description': product.short_description,
-            'description': product.description,
-            'fabric_details': product.fabric_details,
-            'care_instructions': product.care_instructions,
-            'price': float(product.price),
-            'sale_price': float(product.sale_price) if product.sale_price else None,
-            **product_prices(product),
-            'sizes': product.sizes.split(',') if product.sizes else [],
-            'colors': product.colors.split(',') if product.colors else [],
-            'category': {'id': product.category.id, 'name': product.category.name, 'slug': product.category.slug} if product.category else None,
-            'stock_quantity': product.stock_quantity,
-            'image_url': product.image_url,
-            'gallery': (product.gallery or '').split(',') if product.gallery else [],
-            'is_new_arrival': product.is_new_arrival,
-            'is_best_seller': product.is_best_seller,
-            'is_featured': product.is_featured,
-            'is_active': product.is_active,
-        })
-    return response
+    return [serialize_product(product) for product in products]
 
 
 @router.get('/api/products/{product_id}')
@@ -91,24 +109,4 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
     if not product:
         raise HTTPException(status_code=404, detail='Product not found')
 
-    return {
-        'id': product.id,
-        'sku': product.sku,
-        'name': product.name,
-        'short_description': product.short_description,
-        'description': product.description,
-        'fabric_details': product.fabric_details,
-        'care_instructions': product.care_instructions,
-        'price': float(product.price),
-        'sale_price': float(product.sale_price) if product.sale_price else None,
-        **product_prices(product),
-        'sizes': product.sizes.split(',') if product.sizes else [],
-        'colors': product.colors.split(',') if product.colors else [],
-        'category': {'id': product.category.id, 'name': product.category.name, 'slug': product.category.slug} if product.category else None,
-        'stock_quantity': product.stock_quantity,
-        'image_url': product.image_url,
-        'gallery': (product.gallery or '').split(',') if product.gallery else [],
-        'is_new_arrival': product.is_new_arrival,
-        'is_best_seller': product.is_best_seller,
-        'is_featured': product.is_featured,
-    }
+    return serialize_product(product)

@@ -1,28 +1,40 @@
 from __future__ import annotations
 
+import mimetypes
 import os
 from pathlib import Path
+from collections.abc import Awaitable, Callable
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from .auth import get_db
 from .data.product_catalog import PRODUCT_SEED
-from .database import Base, SessionLocal, engine
+from .database import SessionLocal
 from .models import Category, Design, Fabric, Product
-from .routes import ai_assistant, cart, categories, contact, customizations, orders, products, users
+from .routes import ai_assistant, cart, catalog_admin, categories, contact, customizations, fulfillment, inbox, orders, payments, products, users
 
 load_dotenv(Path(__file__).resolve().parents[1] / '.env')
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 FRONTEND_DIR = ROOT_DIR / 'frontend'
+WEB_DIST_DIR = ROOT_DIR / 'web' / 'dist'
+IS_PRODUCTION = os.getenv('APP_ENV') == 'production'
+mimetypes.add_type('image/webp', '.webp')
 
-app = FastAPI(title='JANADHISH', version='1.0.0', docs_url='/docs', redoc_url='/redoc')
+app = FastAPI(
+    title='JANADHISH', version='1.0.0',
+    docs_url=None if IS_PRODUCTION else '/docs',
+    redoc_url=None if IS_PRODUCTION else '/redoc',
+    openapi_url=None if IS_PRODUCTION else '/openapi.json',
+)
 
-origins = [
+origins = [] if IS_PRODUCTION else [
     'http://127.0.0.1:8000',
     'http://localhost:8000',
     'http://127.0.0.1:5500',
@@ -46,19 +58,52 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+
+@app.middleware('http')
+async def security_headers(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+    response = await call_next(request)
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Referrer-Policy'] = 'no-referrer'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
+    if (
+        request.method not in ('GET', 'HEAD')
+        or request.headers.get('Authorization')
+        or request.url.path.startswith(('/api/payments/', '/api/admin/', '/api/orders/', '/api/auth/'))
+    ):
+        response.headers['Cache-Control'] = 'no-store'
+    if IS_PRODUCTION:
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; "
+            "object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+        )
+    return response
+
 app.include_router(products.router)
+app.include_router(catalog_admin.router)
 app.include_router(categories.router)
 app.include_router(cart.router)
 app.include_router(customizations.router)
 app.include_router(users.router)
 app.include_router(orders.router)
+app.include_router(payments.router)
+app.include_router(fulfillment.router)
+app.include_router(inbox.router)
 app.include_router(contact.router)
 app.include_router(ai_assistant.router)
 
-app.mount('/css', StaticFiles(directory=str(FRONTEND_DIR / 'css')), name='css')
-app.mount('/js', StaticFiles(directory=str(FRONTEND_DIR / 'js')), name='js')
 app.mount('/assets', StaticFiles(directory=str(FRONTEND_DIR / 'assets')), name='assets')
 app.mount('/Images', StaticFiles(directory=str(FRONTEND_DIR / 'Images')), name='images')
+if (WEB_DIST_DIR / 'app-assets').is_dir():
+    app.mount('/app-assets', StaticFiles(directory=str(WEB_DIST_DIR / 'app-assets')), name='app-assets')
+
+
+def storefront_page() -> FileResponse:
+    built_page = WEB_DIST_DIR / 'index.html'
+    if not built_page.is_file():
+        raise HTTPException(status_code=503, detail='Storefront build is unavailable')
+    return FileResponse(built_page)
 
 
 def seed_initial_data():
@@ -124,17 +169,10 @@ def seed_initial_data():
                 'is_featured': product_data['is_featured'],
                 'is_active': product_data['is_active'],
             }
-            product = existing_products.get(product_data['sku'])
-            if product:
-                for field, value in values.items():
-                    setattr(product, field, value)
-            else:
+            if product_data['sku'] not in existing_products:
+                if product_data['sku'] in {'JD-1001', 'JD-2002', 'JD-3003', 'JD-4004', 'JD-5005'}:
+                    values['is_active'] = False
                 db.add(Product(sku=product_data['sku'], stock_quantity=8, **values))
-
-        for sample_sku in ('JD-1001', 'JD-2002', 'JD-3003', 'JD-4004', 'JD-5005'):
-            sample_product = existing_products.get(sample_sku)
-            if sample_product:
-                sample_product.is_active = False
         db.commit()
     finally:
         db.close()
@@ -142,100 +180,114 @@ def seed_initial_data():
 
 @app.on_event('startup')
 def startup():
-    Base.metadata.create_all(bind=engine)
     seed_initial_data()
+
+
+@app.get('/health')
+def health(db: Session = Depends(get_db)):
+    db.execute(text('SELECT 1'))
+    return {'ok': True}
 
 
 @app.get('/')
 def home_page():
-    return FileResponse(FRONTEND_DIR / 'index.html')
+    return storefront_page()
 
 
 @app.get('/shop')
 def shop_page():
-    return FileResponse(FRONTEND_DIR / 'shop.html')
+    return storefront_page()
 
 
 @app.get('/product/{product_id}')
 def product_page(product_id: int):
-    return FileResponse(FRONTEND_DIR / 'product.html')
+    return storefront_page()
 
 
 @app.get('/custom-made')
 def custom_made_page():
-    return FileResponse(FRONTEND_DIR / 'custom-made.html')
+    return storefront_page()
 
 
 @app.get('/cart')
 def cart_page():
-    return FileResponse(FRONTEND_DIR / 'cart.html')
+    return storefront_page()
 
 
 @app.get('/checkout')
 def checkout_page():
-    return FileResponse(FRONTEND_DIR / 'checkout.html')
+    return storefront_page()
 
 
 @app.get('/login')
 def login_page():
-    return FileResponse(FRONTEND_DIR / 'login.html')
+    return storefront_page()
 
 
 @app.get('/register')
 def register_page():
-    return FileResponse(FRONTEND_DIR / 'register.html')
+    return storefront_page()
 
 
 @app.get('/account')
 def account_page():
-    return FileResponse(FRONTEND_DIR / 'account.html')
+    return storefront_page()
+
+
+@app.get('/admin/payments')
+def admin_payments_page():
+    return storefront_page()
+
+
+@app.get('/admin/inbox')
+def admin_inbox_page():
+    return storefront_page()
 
 
 @app.get('/about')
 def about_page():
-    return FileResponse(FRONTEND_DIR / 'about.html')
+    return storefront_page()
 
 
 @app.get('/contact')
 def contact_page():
-    return FileResponse(FRONTEND_DIR / 'contact.html')
+    return storefront_page()
 
 
 @app.get('/faq')
 def faq_page():
-    return FileResponse(FRONTEND_DIR / 'faq.html')
+    return storefront_page()
 
 
 @app.get('/privacy-policy')
 def privacy_page():
-    return FileResponse(FRONTEND_DIR / 'privacy.html')
+    return storefront_page()
 
 
 @app.get('/terms')
 def terms_page():
-    return FileResponse(FRONTEND_DIR / 'terms.html')
+    return storefront_page()
 
 
 @app.get('/shipping-policy')
 def shipping_page():
-    return FileResponse(FRONTEND_DIR / 'shipping.html')
+    return storefront_page()
 
 
 @app.get('/api/fabrics')
-def get_fabrics():
+def get_fabrics(db: Session = Depends(get_db)) -> list[dict[str, object]]:
     return [
-        {'id': 1, 'name': 'Cotton Silk', 'description': 'Lightweight and graceful.', 'additional_price': 350, 'image_url': '/assets/images/fabrics/cotton-silk.svg'},
-        {'id': 2, 'name': 'Handloom Cotton', 'description': 'Breathable and artisan-made.', 'additional_price': 200, 'image_url': '/assets/images/fabrics/handloom-cotton.svg'},
-        {'id': 3, 'name': 'Organza', 'description': 'Soft drape with a delicate finish.', 'additional_price': 450, 'image_url': '/assets/images/fabrics/organza.svg'},
+        {'id': item.id, 'name': item.name, 'description': item.description,
+         'additional_price': item.additional_price, 'image_url': item.image_url}
+        for item in db.query(Fabric).filter(Fabric.is_active.is_(True)).order_by(Fabric.name).all()
     ]
 
 
 @app.get('/api/designs')
-def get_designs():
+def get_designs(db: Session = Depends(get_db)) -> list[dict[str, object]]:
     return [
-        {'id': 1, 'name': 'Floral Chikankari', 'description': 'Delicate floral embroidery detail.', 'image_url': '/assets/images/designs/floral-chikankari.svg'},
-        {'id': 2, 'name': 'Aari Work', 'description': 'Traditional artistry with a contemporary cut.', 'image_url': '/assets/images/designs/aari-work.svg'},
-        {'id': 3, 'name': 'Minimalist Block Print', 'description': 'Clean lines and warm tonality.', 'image_url': '/assets/images/designs/minimalist-block.svg'},
+        {'id': item.id, 'name': item.name, 'description': item.description, 'image_url': item.image_url}
+        for item in db.query(Design).filter(Design.is_active.is_(True)).order_by(Design.name).all()
     ]
 
 
@@ -244,4 +296,10 @@ def favicon():
     return FileResponse(FRONTEND_DIR / 'assets' / 'images' / 'logo' / 'brand-mark.svg')
 
 
-app.mount('/', StaticFiles(directory=str(FRONTEND_DIR), html=True), name='frontend')
+@app.get('/{full_path:path}')
+def react_page(full_path: str):
+    if full_path.startswith('api/') or (
+        IS_PRODUCTION and (full_path in {'docs', 'redoc', 'openapi.json'} or full_path.startswith('docs/'))
+    ):
+        raise HTTPException(status_code=404, detail='Not found')
+    return storefront_page()

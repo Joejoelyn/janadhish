@@ -12,6 +12,8 @@ venv/
 backend/*.db
 *.db
 *.sqlite3
+.preview-data/
+.client-data/
 
 # IDE/editor
 .vscode/
@@ -23,3 +25,5 @@ Thumbs.db
 
 # Build artifacts
 *.log
+web/node_modules/
+web/dist/

@@ -1,0 +1,8 @@
+.*
+*.db
+.preview-data/
+*.pyc
+__pycache__/
+tests/
+web/node_modules/
+web/dist/
