@@ -58,6 +58,8 @@ local-development default.
    this value; do not commit it to source control.
 2. Set `FRONTEND_ORIGIN` to the allowed frontend origins, comma-separated if
    needed (for example, `https://janadhish.co.in,https://www.janadhish.co.in`).
+   Set `PUBLIC_SITE_URL` to the final HTTPS origin, for example
+   `https://janadhish.co.in`; product sharing links and the sitemap use it.
 3. Push the project to a GitHub repository. Do not upload `.env` or a local
    database file; `.gitignore` excludes both.
 4. In Render, choose **New > Blueprint**, connect the repository, and deploy
@@ -85,6 +87,9 @@ Start: python -m backend.manage_schema && uvicorn backend.main:app --host 0.0.0.
 ```
 
 FastAPI serves the React build at `/`, plus original image assets and API routes.
+Public product pages expose product-specific sharing metadata. `/sitemap.xml`
+lists active products, while `/robots.txt` excludes account, checkout, admin,
+and API routes from crawling. Unknown storefront URLs return HTTP 404.
 The frontend uses a relative
 API base by default, so browser requests such as `/api/products` and
 `/api/auth/login` go to the same domain without a separately hosted frontend.

@@ -14,3 +14,5 @@ services:
         sync: false
       - key: FRONTEND_ORIGIN
         value: https://janadhish.co.in,https://www.janadhish.co.in
+      - key: PUBLIC_SITE_URL
+        value: https://janadhish.co.in

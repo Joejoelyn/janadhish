@@ -2,13 +2,17 @@ from __future__ import annotations
 
 import mimetypes
 import os
+import re
+from html import escape as html_escape
 from pathlib import Path
 from collections.abc import Awaitable, Callable
+from urllib.parse import urlsplit
+from xml.sax.saxutils import escape as xml_escape
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -25,6 +29,13 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 FRONTEND_DIR = ROOT_DIR / 'frontend'
 WEB_DIST_DIR = ROOT_DIR / 'web' / 'dist'
 IS_PRODUCTION = os.getenv('APP_ENV') == 'production'
+PUBLIC_SITE_URL = os.getenv('PUBLIC_SITE_URL', '').rstrip('/')
+public_site_parts = urlsplit(PUBLIC_SITE_URL)
+if IS_PRODUCTION and (
+    public_site_parts.scheme != 'https' or not public_site_parts.netloc
+    or public_site_parts.path or public_site_parts.query or public_site_parts.fragment
+):
+    raise RuntimeError('PUBLIC_SITE_URL must be an HTTPS origin in production')
 mimetypes.add_type('image/webp', '.webp')
 
 app = FastAPI(
@@ -78,6 +89,10 @@ async def security_headers(request: Request, call_next: Callable[[Request], Awai
             "font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; "
             "object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
         )
+    if request.url.path.startswith(('/api/', '/admin/')) or request.url.path in {
+        '/cart', '/checkout', '/account', '/login', '/register',
+    }:
+        response.headers['X-Robots-Tag'] = 'noindex, nofollow'
     return response
 
 app.include_router(products.router)
@@ -104,6 +119,10 @@ def storefront_page() -> FileResponse:
     if not built_page.is_file():
         raise HTTPException(status_code=503, detail='Storefront build is unavailable')
     return FileResponse(built_page)
+
+
+def site_origin(request: Request) -> str:
+    return PUBLIC_SITE_URL or str(request.base_url).rstrip('/')
 
 
 def seed_initial_data():
@@ -200,8 +219,39 @@ def shop_page():
 
 
 @app.get('/product/{product_id}')
-def product_page(product_id: int):
-    return storefront_page()
+def product_page(product_id: int, request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+    product = db.query(Product).filter(Product.id == product_id, Product.is_active.is_(True)).first()
+    if product is None:
+        raise HTTPException(status_code=404, detail='Product not found')
+    built_page = WEB_DIST_DIR / 'index.html'
+    if not built_page.is_file():
+        raise HTTPException(status_code=503, detail='Storefront build is unavailable')
+    origin = site_origin(request)
+    title = html_escape(f'{product.name} | JANADHISH', quote=True)
+    description = html_escape(
+        (product.short_description or product.description or product.name).strip()[:200], quote=True,
+    )
+    image_path = (
+        product.image_url if product.image_url and product.image_url.startswith('/')
+        else '/assets/images/logo/brand-mark.svg'
+    )
+    image = html_escape(f'{origin}{image_path}', quote=True)
+    canonical = html_escape(f'{origin}/product/{product.id}', quote=True)
+    page = built_page.read_text(encoding='utf-8')
+    page = re.sub(r'<title>.*?</title>', lambda _: f'<title>{title}</title>', page, count=1, flags=re.DOTALL)
+    page = re.sub(
+        r'<meta name="description"[^>]*>',
+        lambda _: f'<meta name="description" content="{description}" />',
+        page, count=1,
+    )
+    social = (
+        f'<link rel="canonical" href="{canonical}" />'
+        f'<meta property="og:type" content="product" />'
+        f'<meta property="og:title" content="{title}" />'
+        f'<meta property="og:description" content="{description}" />'
+        f'<meta property="og:image" content="{image}" />'
+    )
+    return HTMLResponse(page.replace('</head>', f'{social}</head>', 1))
 
 
 @app.get('/custom-made')
@@ -241,6 +291,16 @@ def admin_payments_page():
 
 @app.get('/admin/inbox')
 def admin_inbox_page():
+    return storefront_page()
+
+
+@app.get('/admin/catalog')
+def admin_catalog_page():
+    return storefront_page()
+
+
+@app.get('/admin/fulfillment')
+def admin_fulfillment_page():
     return storefront_page()
 
 
@@ -296,10 +356,31 @@ def favicon():
     return FileResponse(FRONTEND_DIR / 'assets' / 'images' / 'logo' / 'brand-mark.svg')
 
 
-@app.get('/{full_path:path}')
-def react_page(full_path: str):
-    if full_path.startswith('api/') or (
-        IS_PRODUCTION and (full_path in {'docs', 'redoc', 'openapi.json'} or full_path.startswith('docs/'))
-    ):
-        raise HTTPException(status_code=404, detail='Not found')
-    return storefront_page()
+@app.get('/robots.txt')
+def robots(request: Request) -> PlainTextResponse:
+    return PlainTextResponse(
+        'User-agent: *\nDisallow: /api/\nDisallow: /admin/\nDisallow: /cart\n'
+        'Disallow: /checkout\nDisallow: /account\nDisallow: /login\n'
+        f'Disallow: /register\nSitemap: {site_origin(request)}/sitemap.xml\n'
+    )
+
+
+@app.get('/sitemap.xml')
+def sitemap(request: Request, db: Session = Depends(get_db)) -> Response:
+    origin = site_origin(request)
+    paths = ['/', '/shop', '/custom-made', '/about', '/contact', '/faq']
+    paths.extend(
+        f'/product/{product_id}'
+        for (product_id,) in db.query(Product.id).filter(Product.is_active.is_(True)).order_by(Product.id).all()
+    )
+    entries = ''.join(
+        f'<url><loc>{xml_escape(origin + path)}</loc></url>' for path in paths
+    )
+    return Response(
+        content=(
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+            f'{entries}</urlset>'
+        ),
+        media_type='application/xml',
+    )

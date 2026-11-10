@@ -141,6 +141,44 @@ class StorefrontApiTests(unittest.TestCase):
         self.assertEqual(private_status.headers.get('Cache-Control'), 'no-store')
         self.assertIsNone(self.client.get('/api/products').headers.get('Cache-Control'))
 
+    def test_public_routes_return_correct_status_and_indexing_headers(self) -> None:
+        self.assertEqual(self.client.get('/admin/catalog').status_code, 200)
+        self.assertEqual(self.client.get('/admin/fulfillment').status_code, 200)
+        self.assertEqual(
+            self.client.get('/admin/catalog').headers['X-Robots-Tag'], 'noindex, nofollow',
+        )
+        self.assertEqual(self.client.get('/missing-page').status_code, 404)
+        self.assertEqual(self.client.get('/product/not-a-number').status_code, 422)
+        self.assertEqual(self.client.get('/product/999999').status_code, 404)
+        robots = self.client.get('/robots.txt')
+        self.assertEqual(robots.status_code, 200)
+        self.assertIn('Disallow: /checkout', robots.text)
+        self.assertIn('/sitemap.xml', robots.text)
+
+    def test_product_metadata_and_sitemap_reflect_active_catalog(self) -> None:
+        with SessionLocal() as db:
+            product = db.get(Product, self.product['id'])
+            product.name = 'Kurti "Summer" <new>'
+            product.short_description = 'Light <silk> & cotton'
+            db.commit()
+        response = self.client.get(f"/product/{self.product['id']}")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Kurti &quot;Summer&quot; &lt;new&gt; | JANADHISH', response.text)
+        self.assertIn('Light &lt;silk&gt; &amp; cotton', response.text)
+        self.assertNotIn('<new>', response.text)
+        self.assertIn('rel="canonical"', response.text)
+        sitemap = self.client.get('/sitemap.xml')
+        self.assertEqual(sitemap.status_code, 200)
+        self.assertIn(f"/product/{self.product['id']}</loc>", sitemap.text)
+        with SessionLocal() as db:
+            product = db.get(Product, self.product['id'])
+            product.is_active = False
+            db.commit()
+        self.assertEqual(self.client.get(f"/product/{self.product['id']}").status_code, 404)
+        self.assertNotIn(
+            f"/product/{self.product['id']}</loc>", self.client.get('/sitemap.xml').text,
+        )
+
     def test_storefront_media_urls_resolve(self) -> None:
         products = self.client.get('/api/products').json()
         fabrics = self.client.get('/api/fabrics').json()

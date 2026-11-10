@@ -50,7 +50,7 @@ export function Layout({ children, cartCount, addedItem, dismissAdded }: {
   };
 
   return <>
-    <div className="announcement"><span>Thoughtful pieces, made for you</span><span>Complimentary shipping above ₹3,000</span></div>
+    <div className="announcement"><span>Thoughtful pieces, made for you</span><span>Complimentary shipping from ₹3,000</span></div>
     <header className="site-header">
       <div className="header-main container">
         <button className="icon-button mobile-menu-button" type="button" aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen} aria-controls="main-navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={20} /> : <Menu size={20} />}</button>
