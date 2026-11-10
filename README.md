@@ -128,12 +128,13 @@ queue. Staff can mark them packed, shipped with carrier and tracking reference,
 then delivered. Delivered orders remain available in a separate history view;
 customers can check delivery status from their order page.
 
-Create a regular account first, then grant reviewer access from a trusted server
-shell with `python -m backend.manage_admin reviewer@example.com --grant`. Revoke
-it with `--revoke`. Sign in again after a grant; an earlier customer session
-cannot open admin pages. Only grant this role to someone permitted to inspect the
-receiving account statement. Keep `SECRET_KEY` stable and private, and use a
-persistent PostgreSQL database for production.
+Create a regular account first, then grant full store admin access from a trusted
+server shell with `python -m backend.manage_admin your@email.com --grant`.
+This grants payment review, fulfilment, customer inbox, and catalog editing.
+Revoke it with `--revoke`. Sign in again after a grant; an earlier customer
+session cannot open admin pages. Grant this role only to staff authorized for
+all four areas, including the receiving account statement. Keep `SECRET_KEY`
+stable and private, and use a persistent PostgreSQL database for production.
 
 For the local Docker preview, run the grant command inside its container:
 `docker exec janadhish-qr-final-preview python -m backend.manage_admin your@email.com --grant`.

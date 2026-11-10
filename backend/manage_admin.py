@@ -7,7 +7,7 @@ from .models import User
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description='Grant or revoke payment reviewer access for an existing user.')
+    parser = argparse.ArgumentParser(description='Grant or revoke full store admin access for an existing user.')
     parser.add_argument('email', help='Email address of a registered account')
     action = parser.add_mutually_exclusive_group(required=True)
     action.add_argument('--grant', action='store_true')
@@ -19,7 +19,7 @@ def main() -> None:
             parser.error('Registered account not found')
         user.is_admin = args.grant
         db.commit()
-        print(f'Payment reviewer access {"granted" if args.grant else "revoked"} for {user.email}')
+        print(f'Store admin access {"granted" if args.grant else "revoked"} for {user.email}')
 
 
 if __name__ == '__main__':
