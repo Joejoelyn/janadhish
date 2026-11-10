@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, JSON, String, Text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, JSON, LargeBinary, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -50,6 +50,16 @@ class Product(Base):
     category: Mapped[Category | None] = relationship(back_populates='products')
     cart_items: Mapped[list['CartItem']] = relationship(back_populates='product')
     order_items: Mapped[list['OrderItem']] = relationship(back_populates='product')
+
+
+class ProductImage(Base):
+    __tablename__ = 'product_images'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey('products.id'), nullable=False, index=True)
+    content: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
 
 class Fabric(Base):

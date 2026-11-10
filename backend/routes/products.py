@@ -2,16 +2,27 @@ from functools import lru_cache
 from pathlib import Path
 from urllib.parse import unquote, urlsplit, urlunsplit
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..auth import get_db
-from ..models import Category, Product
+from ..models import Category, Product, ProductImage
 from ..services.pricing import product_variant_prices
 
 router = APIRouter()
 PRODUCT_IMAGE_ROOT = (Path(__file__).resolve().parents[2] / 'frontend' / 'Images' / 'products').resolve()
+
+
+@router.get('/media/products/{product_id}/{image_id}.webp')
+def product_image(product_id: int, image_id: int, request: Request, db: Session = Depends(get_db)) -> Response:
+    image = db.query(ProductImage).filter_by(id=image_id, product_id=product_id).first()
+    if image is None:
+        raise HTTPException(status_code=404, detail='Image not found')
+    headers = {'ETag': f'"{image.sha256}"', 'Cache-Control': 'public, max-age=31536000, immutable'}
+    if request.headers.get('if-none-match') == headers['ETag']:
+        return Response(status_code=304, headers=headers)
+    return Response(content=image.content, media_type='image/webp', headers=headers)
 
 
 @lru_cache(maxsize=512)

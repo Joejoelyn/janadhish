@@ -130,7 +130,7 @@ customers can check delivery status from their order page.
 
 Create a regular account first, then grant full store admin access from a trusted
 server shell with `python -m backend.manage_admin your@email.com --grant`.
-This grants payment review, fulfilment, customer inbox, and catalog editing.
+This grants payment review, fulfilment, customer inbox, and catalog management.
 Revoke it with `--revoke`. Sign in again after a grant; an earlier customer
 session cannot open admin pages. Grant this role only to staff authorized for
 all four areas, including the receiving account statement. Keep `SECRET_KEY`
@@ -140,7 +140,7 @@ For the local Docker preview, run the grant command inside its container:
 `docker exec janadhish-qr-final-preview python -m backend.manage_admin your@email.com --grant`.
 The preview mounts the ignored `.preview-data/` directory at `/app/data` and
 uses `DATABASE_URL=sqlite:////app/data/janadhish.db` so accounts, orders, and
-catalog edits survive container replacement.
+catalog edits and uploaded product photos survive container replacement.
 
 The owner confirmed on 2026-11-07 that Kiran Lodha is authorised to receive
 JANADHISH payments through the supplied QR. Before public launch, test the QR
@@ -163,10 +163,15 @@ and resolving a ticket requires a customer-visible reply.
 
 The startup catalog adds products with new SKUs; it does not overwrite existing
 product details, prices, visibility, or stock. An authorised administrator can
-edit those values at `/admin/catalog`. Standard and with-pads prices shown on
-product pages are the same database prices used by checkout. Product changes
-are recorded in an admin-only history. Custom fabric and design choices also
-come from active database records.
+add a product at `/admin/catalog` with a unique SKU, collection, prices, stock,
+descriptions, sizes, colours, and 1–6 JPEG, PNG, or WebP photos. Leave “Visible in
+store” off to save a draft, then publish it after review. Staff can edit those
+values and replace a product's full photo gallery on the same page. Each upload
+must be 10 MB or smaller; the server validates and converts it to WebP. Uploaded
+photos are stored in the database, so use persistent database storage and include
+it in backups. Standard and with-pads prices shown on product pages are the same
+database prices used by checkout. Product changes are recorded in an admin-only
+history. Custom fabric and design choices also come from active database records.
 
 - Swagger UI: `http://127.0.0.1:8000/docs`
 - Redoc: `http://127.0.0.1:8000/redoc`

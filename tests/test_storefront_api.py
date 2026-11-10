@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import os
+import json
 import secrets
 import tempfile
 import unittest
+from io import BytesIO
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+from PIL import Image
 
 
 TEMP_DIR = tempfile.TemporaryDirectory()
@@ -16,7 +19,7 @@ os.environ['SECRET_KEY'] = secrets.token_hex(32)
 from backend.database import Base, SessionLocal, engine  # noqa: E402
 from backend.auth import get_current_user, login_throttle_key  # noqa: E402
 from backend.main import app, seed_initial_data  # noqa: E402
-from backend.models import ContactMessage, ContactUpdate, CustomRequest, Design, Fabric, FulfillmentEvent, LoginThrottle, Order, PaymentRefund, PaymentReview, Product, User  # noqa: E402
+from backend.models import ContactMessage, ContactUpdate, CustomRequest, Design, Fabric, FulfillmentEvent, LoginThrottle, Order, PaymentRefund, PaymentReview, Product, ProductImage, User  # noqa: E402
 
 
 class StorefrontApiTests(unittest.TestCase):
@@ -226,7 +229,7 @@ class StorefrontApiTests(unittest.TestCase):
             self.assertEqual(product.sale_price, 2000)
             self.assertEqual(product.stock_quantity, 6)
 
-    def test_admin_catalog_edits_are_authorized_and_audited(self) -> None:
+    def test_admin_catalog_restricts_non_admin(self) -> None:
         registration = self.client.post('/api/auth/register', json={
             'full_name': 'Catalog Manager', 'email': 'catalog@example.com', 'password': 'strong-password-123',
         }).json()
@@ -234,6 +237,79 @@ class StorefrontApiTests(unittest.TestCase):
         product_id = self.product['id']
         self.assertEqual(self.client.get('/api/admin/products').status_code, 401)
         self.assertEqual(self.client.get('/api/admin/products', headers=headers).status_code, 403)
+
+    def test_admin_can_add_product_photos_and_publish_it(self) -> None:
+        registration = self.client.post('/api/auth/register', json={
+            'full_name': 'Catalog Manager', 'email': 'catalog@example.com', 'password': 'strong-password-123',
+        }).json()
+        with SessionLocal() as db:
+            db.get(User, registration['user']['id']).is_admin = True
+            db.commit()
+        headers = self.admin_headers('catalog@example.com')
+        category = self.client.get('/api/categories').json()[0]
+        details = {
+            'sku': 'TEST-NEW-001', 'name': 'New Cotton Kurti', 'category_id': category['id'],
+            'sizes': ['S', 'M'], 'colors': ['Blue'], 'short_description': 'Light cotton kurti',
+            'without_pads_price': 1200, 'with_pads_price': 1500, 'stock_quantity': 3,
+            'is_active': True, 'is_new_arrival': True,
+        }
+        image = BytesIO()
+        Image.new('RGB', (80, 100), '#a05a43').save(image, format='PNG')
+        image_bytes = image.getvalue()
+        def upload(payload: dict, contents: bytes = image_bytes):
+            return self.client.post('/api/admin/products', headers=headers,
+                                    data={'details': json.dumps(payload)},
+                                    files=[('images', ('front.png', contents, 'image/png'))])
+
+        self.assertEqual(self.client.post('/api/admin/products', data={'details': json.dumps(details)},
+                                          files=[('images', ('front.png', image_bytes, 'image/png'))]).status_code, 401)
+        invalid = upload({**details, 'sku': 'TEST-INVALID'}, b'not an image')
+        self.assertEqual(invalid.status_code, 422, invalid.text)
+        self.assertEqual(upload({**details, 'category_id': 999999}).status_code, 422)
+        created = upload(details)
+        self.assertEqual(created.status_code, 201, created.text)
+        product = created.json()
+        self.assertEqual(product['sizes'], ['S', 'M'])
+        self.assertEqual(product['colors'], ['Blue'])
+        self.assertEqual(product['category']['id'], category['id'])
+        self.assertEqual(product['gallery'], [product['image_url']])
+        self.assertEqual(upload(details).status_code, 409)
+        image_response = self.client.get(product['image_url'])
+        self.assertEqual(image_response.status_code, 200)
+        self.assertEqual(image_response.headers['content-type'], 'image/webp')
+        self.assertEqual(self.client.get(product['image_url'], headers={
+            'If-None-Match': image_response.headers['etag'],
+        }).status_code, 304)
+        self.assertEqual(self.client.get(f"/api/products/{product['id']}").status_code, 200)
+        self.assertEqual(self.client.post('/api/orders', json={
+            **self.order_payload(), 'cart_items': [{
+                'product_id': product['id'], 'quantity': 1, 'size': 'S',
+                'color': 'Blue', 'with_pads': False,
+            }],
+        }).json()['total'], 1450)
+        self.assertIn(product['id'], [item['id'] for item in self.client.get('/api/admin/products', headers=headers).json()])
+        updated = self.client.post(f"/api/admin/products/{product['id']}/images", headers=headers,
+                                   data={'expected_image_url': product['image_url']},
+                                   files=[('images', ('new.png', image_bytes, 'image/png'))])
+        self.assertEqual(updated.status_code, 200, updated.text)
+        self.assertNotEqual(updated.json()['image_url'], product['image_url'])
+        self.assertEqual(self.client.get(product['image_url']).status_code, 404)
+        self.assertEqual(self.client.get(updated.json()['image_url']).status_code, 200)
+        self.assertEqual(self.client.post(f"/api/admin/products/{product['id']}/images", headers=headers,
+                                          data={'expected_image_url': product['image_url']},
+                                          files=[('images', ('new.png', image_bytes, 'image/png'))]).status_code, 409)
+        self.assertEqual(len(self.client.get(f"/api/admin/products/{product['id']}/history", headers=headers).json()), 2)
+        seed_initial_data()
+        with SessionLocal() as db:
+            self.assertEqual(db.query(Product).filter_by(sku=details['sku']).count(), 1)
+            self.assertEqual(db.query(ProductImage).filter_by(product_id=product['id']).count(), 1)
+
+    def test_admin_catalog_edits_are_authorized_and_audited(self) -> None:
+        registration = self.client.post('/api/auth/register', json={
+            'full_name': 'Catalog Manager', 'email': 'catalog@example.com', 'password': 'strong-password-123',
+        }).json()
+        headers = {'Authorization': f"Bearer {registration['access_token']}"}
+        product_id = self.product['id']
         with SessionLocal() as db:
             db.get(User, registration['user']['id']).is_admin = True
             db.commit()
