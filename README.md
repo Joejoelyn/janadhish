@@ -53,22 +53,21 @@ The project includes a Render Blueprint (`render.yaml`) for hosting the FastAPI
 site. Configure a PostgreSQL connection for production; SQLite remains the
 local-development default.
 
-1. Create a PostgreSQL database in Render and set the web service's
-   `DATABASE_URL` to its **internal** connection URL. The Blueprint prompts for
-   this value; do not commit it to source control.
-2. Set `FRONTEND_ORIGIN` to the allowed frontend origins, comma-separated if
-   needed (for example, `https://janadhish.co.in,https://www.janadhish.co.in`).
-   Set `PUBLIC_SITE_URL` to the final HTTPS origin, for example
-   `https://janadhish.co.in`; product sharing links and the sitemap use it.
-3. Push the project to a GitHub repository. Do not upload `.env` or a local
+1. Push the project to a GitHub repository. Do not upload `.env` or a local
    database file; `.gitignore` excludes both.
-4. In Render, choose **New > Blueprint**, connect the repository, and deploy
-   using `render.yaml`.
-5. In the Render service settings, add `janadhish.co.in` as a custom domain.
+2. Create a PostgreSQL database in Render and copy its **internal** connection URL.
+3. In Render, choose **New > Blueprint** and connect the repository. When prompted,
+   enter the internal URL as `DATABASE_URL` and an HTTPS origin you control as
+   `PUBLIC_SITE_URL`. Product sharing links and the sitemap use that origin.
+   Do not commit the database URL to source control.
+4. Deploy using `render.yaml`. Set `FRONTEND_ORIGIN` only if the React app is
+   hosted on a separate origin. For an existing Blueprint, set new `sync: false`
+   variables in the service settings because Render prompts only at creation.
+5. If using a custom domain, add your verified domain in the Render service settings.
    Follow the DNS records Render shows in your domain registrar's DNS settings.
-   Add `www.janadhish.co.in` too if you want the `www` address.
-6. Wait for Render to verify DNS and issue HTTPS, then open
-   `https://janadhish.co.in`.
+   Add a `www` address too if you want it, and update `PUBLIC_SITE_URL` to the
+   final canonical HTTPS address.
+6. Wait for Render to verify DNS and issue HTTPS, then open your site.
 
 Render builds the React frontend and FastAPI backend with the multi-stage `Dockerfile`.
 The container applies reviewed Alembic migrations before starting the FastAPI service.
